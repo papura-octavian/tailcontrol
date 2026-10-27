@@ -20,6 +20,7 @@ public sealed class LockBrokerTests : IAsyncLifetime
             new LockBrokerOptions { PipeName = _pipeName, ReplyTimeout = TimeSpan.FromMilliseconds(500), AllowSessionZeroForTests = true },
             NullLogger<LockBroker>.Instance);
         await _broker.StartAsync(CancellationToken.None);
+        await _broker.Listening.WaitAsync(TimeSpan.FromSeconds(30));
     }
 
     public async Task DisposeAsync()
@@ -119,7 +120,8 @@ public sealed class LockBrokerTests : IAsyncLifetime
         public static async Task<FakeHelper> ConnectAsync(string pipeName, string? reply)
         {
             var pipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
-            await pipe.ConnectAsync(5000);
+            // Generos: pe runner-ele CI cu 2 nuclee, thread pool-ul poate fi ocupat de alte teste.
+            await pipe.ConnectAsync(30_000);
             var helper = new FakeHelper(pipe);
             _ = helper.RunAsync(reply);
             return helper;
