@@ -5,7 +5,9 @@ After=network-online.target tailscaled.service
 Wants=network-online.target
 
 [Service]
-Type=notify
+# Type=exec, nu notify: detectarea systemd din .NET citeste /proc/<ppid>/comm, pe care
+# ProtectProc=invisible il ascunde, asa ca READY=1 nu ar fi trimis niciodata.
+Type=exec
 User=tailcontrol-hub
 Group=tailcontrol-hub
 WorkingDirectory=/opt/tailcontrol-hub
@@ -16,8 +18,6 @@ Environment=TAILCONTROL_HUB_CONFIG=/etc/tailcontrol/hub/hub.json
 Environment=DOTNET_EnableDiagnostics=0
 Restart=on-failure
 RestartSec=10
-# La boot, Hub-ul asteapta pana la 300 s adresa Tailscale (Hub:TailscaleWaitSeconds).
-TimeoutStartSec=360
 
 # Baza de date: /var/lib/tailcontrol-hub (singurul loc unde serviciul poate scrie).
 StateDirectory=tailcontrol-hub

@@ -32,8 +32,6 @@ if (!string.IsNullOrEmpty(siteConfig))
     builder.Configuration.AddJsonFile(siteConfig, optional: false);
 }
 
-builder.Host.UseSystemd();
-
 var options = HubOptions.Load(builder.Configuration);
 TailscaleHosting.ValidateConfiguration(builder.Configuration, builder.Environment.IsDevelopment());
 
