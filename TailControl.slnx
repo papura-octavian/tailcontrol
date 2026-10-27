@@ -3,6 +3,7 @@
     <Project Path="src/TailControl.Agent/TailControl.Agent.csproj" />
     <Project Path="src/TailControl.Client/TailControl.Client.csproj" />
     <Project Path="src/TailControl.Hub/TailControl.Hub.csproj" />
+    <Project Path="src/TailControl.LockHelper/TailControl.LockHelper.csproj" />
     <Project Path="src/TailControl.Shared.AspNetCore/TailControl.Shared.AspNetCore.csproj" />
     <Project Path="src/TailControl.Shared/TailControl.Shared.csproj" />
   </Folder>
