@@ -7,6 +7,11 @@
 
   <ItemGroup Label="Data">
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.14" />
+  </ItemGroup>
+
+  <ItemGroup Label="Hub">
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Systemd" Version="10.0.14" />
   </ItemGroup>
 
   <ItemGroup Label="Agent">

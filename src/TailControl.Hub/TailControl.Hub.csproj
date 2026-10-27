@@ -2,8 +2,37 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>TailControl.Hub</AssemblyName>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- Pi 3B: 1 GB RAM impartit cu Pi-hole -->
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
   </PropertyGroup>
+
+  <!-- Publicare pentru Raspberry Pi: dotnet publish -c Release -r linux-arm -->
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'linux-arm'">
+    <SelfContained>true</SelfContained>
+    <!-- Cod precompilat: primul apel dupa pornire nu mai asteapta JIT-ul (~5 s pe Pi fara el). -->
+    <PublishReadyToRun>true</PublishReadyToRun>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TailControl.Shared\TailControl.Shared.csproj" />
+    <ProjectReference Include="..\TailControl.Shared.AspNetCore\TailControl.Shared.AspNetCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="TailControl.Tests" />
+  </ItemGroup>
 
 </Project>
