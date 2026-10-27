@@ -14,7 +14,7 @@ public sealed class AgentConfigurationTests : IDisposable
 
     public AgentConfigurationTests() => Directory.CreateDirectory(_directory);
 
-    public void Dispose() => Directory.Delete(_directory, recursive: true);
+    public void Dispose() => TestSupport.DeleteQuietly(_directory);
 
     [Theory]
     [InlineData("100.64.0.1", true)]

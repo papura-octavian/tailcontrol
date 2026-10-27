@@ -74,7 +74,7 @@ public sealed class HubEndpointTests : IAsyncLifetime
         _admin.Dispose();
         _viewer.Dispose();
         SqliteConnection.ClearAllPools();
-        Directory.Delete(_directory, recursive: true);
+        TestSupport.DeleteQuietly(_directory);
     }
 
     [Fact]

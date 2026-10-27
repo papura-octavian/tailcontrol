@@ -221,13 +221,28 @@ public sealed class AuthorizedClientsFile(string path) : IAuthorizedClientStore
         }
     }
 
-    /// <summary>Scrie lista atomic (fisier temporar + rename).</summary>
+    /// <summary>
+    /// Scrie lista atomic (fisier temporar + rename). Pe Windows, un antivirus care scaneaza fisierul
+    /// il poate bloca pentru scurt timp, asa ca inlocuirea se reincearca de cateva ori.
+    /// </summary>
     public static void Save(string path, AuthorizedClientList list)
     {
         var fullPath = System.IO.Path.GetFullPath(path);
         var temp = fullPath + ".tmp";
         File.WriteAllText(temp, list.Serialize());
-        File.Move(temp, fullPath, overwrite: true);
+
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                File.Move(temp, fullPath, overwrite: true);
+                return;
+            }
+            catch (Exception ex) when (attempt < 5 && ex is IOException or UnauthorizedAccessException)
+            {
+                Thread.Sleep(100 * attempt);
+            }
+        }
     }
 
     public static AuthorizedClientList LoadOrEmpty(string path) =>

@@ -15,7 +15,7 @@ public sealed class AuthorizedClientsTests : IDisposable
     {
         _phone.Dispose();
         _laptop.Dispose();
-        File.Delete(_path);
+        TestSupport.DeleteQuietly(_path);
     }
 
     [Fact]
@@ -121,6 +121,24 @@ public sealed class AuthorizedClientsTests : IDisposable
 
         Assert.Null(file.Find(_phone.ClientId));
         Assert.NotNull(file.LastError);
+    }
+
+    [Fact]
+    public async Task Save_TargetBrieflyLocked_RetriesAndSucceeds()
+    {
+        // Simuleaza un antivirus care tine fisierul deschis exclusiv in momentul inlocuirii.
+        AuthorizedClientsFile.Save(_path, AuthorizedClientList.Empty);
+        var locked = new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.None);
+        var release = Task.Run(async () =>
+        {
+            await Task.Delay(250);
+            await locked.DisposeAsync();
+        });
+
+        AuthorizedClientsFile.Save(_path, AuthorizedClientList.Empty.Authorize(_phone.PublicKey, "Telefon", true, TestSupport.Start, out _));
+        await release;
+
+        Assert.NotNull(AuthorizedClientList.Parse(File.ReadAllText(_path)).Find(_phone.ClientId));
     }
 
     [Fact]
