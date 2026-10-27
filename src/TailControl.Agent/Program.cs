@@ -1,4 +1,5 @@
 using TailControl.Agent;
+using TailControl.Shared.AspNetCore;
 
 var contentRoot = AppContext.BaseDirectory;
 var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
@@ -7,24 +8,25 @@ var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
 var isDevelopment = string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase);
 
 // Comenzile de administrare (authorize-client etc.) nu pornesc serverul.
-if (AdminCli.IsAdminCommand(args))
+if (AuthorizedClientsCli.IsCommand(args))
 {
     var cliConfig = new ConfigurationBuilder()
         .SetBasePath(contentRoot)
         .AddJsonFile("appsettings.json", optional: true)
         .AddJsonFile($"appsettings.{environment}.json", optional: true)
         .Build();
-    return AdminCli.Run(args, AgentOptions.Load(cliConfig), isDevelopment, Console.Out, TimeProvider.System);
+    return AuthorizedClientsCli.Run(args, AgentOptions.Load(cliConfig).ToCliContext(isDevelopment), Console.Out, TimeProvider.System);
 }
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions { Args = args, ContentRootPath = contentRoot });
 builder.Host.UseWindowsService(o => o.ServiceName = AgentOptions.ServiceName);
 
 var options = AgentOptions.Load(builder.Configuration);
-AgentHosting.ValidateConfiguration(builder.Configuration, builder.Environment.IsDevelopment());
+TailscaleHosting.ValidateConfiguration(builder.Configuration, builder.Environment.IsDevelopment());
 
-var addresses = await AgentHosting.ResolveListenAddressesAsync(options, builder.Environment.IsDevelopment());
-builder.WebHost.ConfigureKestrel(k => AgentHosting.ConfigureKestrel(k, options, addresses));
+var listen = options.ToListenSettings();
+var addresses = await TailscaleHosting.ResolveListenAddressesAsync(listen, builder.Environment.IsDevelopment());
+builder.WebHost.ConfigureKestrel(k => TailscaleHosting.ConfigureKestrel(k, listen, addresses));
 builder.Services.AddAgentServices(options);
 
 var app = builder.Build();

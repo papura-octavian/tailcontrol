@@ -76,7 +76,7 @@ TailControl.Agent.exe revoke-client --id <clientId>
 TailControl.Agent.exe list-clients
 ```
 
-Prima autorizare creeaza `config\` si ii aplica ACL-ul de mai sus. Revocarea are efect imediat, fara repornirea serviciului.
+Prima autorizare creeaza `config\` si ii aplica ACL-ul de mai sus. Codul e comun cu Hub-ul (`AuthorizedClientsCli`). Revocarea are efect imediat, fara repornirea serviciului.
 
 ## Configurare (`appsettings.json` langa executabil)
 
