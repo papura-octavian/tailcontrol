@@ -2,9 +2,10 @@
 # pipes, ACL), iar clientul MAUI se compileaza pentru Android si Windows.
 name: CI
 
+# Pe main la push; pe branch-urile de lucru doar prin PR (altfel fiecare push ar rula de doua ori).
 on:
   push:
-    branches: [main, "feature/**"]
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:

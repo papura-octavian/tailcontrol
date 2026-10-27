@@ -51,7 +51,9 @@ Keystore-ul semneaza toate versiunile viitoare ale aplicatiei Android. Daca il p
    ```bash
    keytool -genkeypair -v -keystore tailcontrol-release.keystore -alias tailcontrol -keyalg RSA -keysize 4096 -validity 10000
    ```
-   Alege o parola puternica si noteaz-o in managerul de parole.
+   Alege o parola puternica si noteaz-o in managerul de parole. Keystore-ul e PKCS12, deci cheia are **aceeasi parola** ca keystore-ul. `ANDROID_KEYSTORE_PASSWORD` si `ANDROID_KEY_PASSWORD` primesc aceeasi valoare.
+
+   Daca `gh` raspunde „please run gh auth login”, autentifica-te intai in acel terminal cu `gh auth login`.
 2. Pune-l in GitHub Secrets. In PowerShell, codeaza keystore-ul in base64 si trimite-l ca secret:
    ```bash
    [Convert]::ToBase64String([IO.File]::ReadAllBytes("tailcontrol-release.keystore")) | gh secret set ANDROID_KEYSTORE_BASE64
