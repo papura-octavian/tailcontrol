@@ -3,12 +3,13 @@
     x:Class="TailControl.Client.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:TailControl.Client"
-    Title="TailControl.Client">
+    xmlns:views="clr-namespace:TailControl.Client.Views"
+    Title="TailControl"
+    FlyoutBehavior="Disabled">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <TabBar>
+        <ShellContent Title="Dispozitive" Route="devices" ContentTemplate="{DataTemplate views:DevicesPage}" />
+        <ShellContent Title="Setari" Route="settings" ContentTemplate="{DataTemplate views:SettingsPage}" />
+    </TabBar>
 
 </Shell>

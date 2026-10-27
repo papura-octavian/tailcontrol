@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/TailControl.Agent/TailControl.Agent.csproj" />
+    <Project Path="src/TailControl.Client.Core/TailControl.Client.Core.csproj" />
     <Project Path="src/TailControl.Client/TailControl.Client.csproj" />
     <Project Path="src/TailControl.Hub/TailControl.Hub.csproj" />
     <Project Path="src/TailControl.LockHelper/TailControl.LockHelper.csproj" />

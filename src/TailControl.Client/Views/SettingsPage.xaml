@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TailControl.Client.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:TailControl.Client.ViewModels"
+    x:DataType="vm:SettingsViewModel"
+    Title="Setari">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <!-- Hub -->
+            <Label Text="Hub" Style="{StaticResource Section}" />
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Adresa Hub-ului (numele MagicDNS al Raspberry Pi)" Style="{StaticResource Muted}" />
+                    <Entry Text="{Binding HubUrlText}" Placeholder="pihole.tailnet-1234.ts.net" Keyboard="Url" IsSpellCheckEnabled="False" />
+                    <Button Text="Salveaza si testeaza" Command="{Binding SaveHubCommand}" />
+                    <Label Text="{Binding HubStatus}" Style="{StaticResource Muted}" IsVisible="{Binding HubStatus, Converter={StaticResource NotNull}}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Acest dispozitiv -->
+            <Label Text="Acest dispozitiv" Style="{StaticResource Section}" />
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Daca aplicatia ruleaza pe un dispozitiv din inventar, alege-l ca sa nu apara in lista de tinte." Style="{StaticResource Muted}" />
+                    <Picker ItemsSource="{Binding DeviceOptions}" SelectedItem="{Binding SelectedThisDevice}" IsEnabled="{Binding HubOk}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Securitate -->
+            <Label Text="Securitate" Style="{StaticResource Section}" />
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="14">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <VerticalStackLayout>
+                            <Label Text="Confirmare cu amprenta / PIN" />
+                            <Label Text="Ceruta inainte de oprire si sleep." Style="{StaticResource Muted}" />
+                        </VerticalStackLayout>
+                        <Switch Grid.Column="1" IsToggled="{Binding RequireUserVerification}" VerticalOptions="Center" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <VerticalStackLayout>
+                            <Label Text="Agentii folosesc HTTPS" />
+                            <Label Text="Dezactiveaza doar daca agentii ruleaza fara certificat (HTTP in tailnet)." Style="{StaticResource Muted}" />
+                        </VerticalStackLayout>
+                        <Switch Grid.Column="1" IsToggled="{Binding AgentsUseHttps}" VerticalOptions="Center" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Identitate / pairing -->
+            <Label Text="Autorizarea acestui dispozitiv" Style="{StaticResource Section}" />
+            <Border Style="{StaticResource Banner}" IsVisible="{Binding IdentityWarning, Converter={StaticResource NotNull}}">
+                <Label Text="{Binding IdentityWarning}" />
+            </Border>
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Style="{StaticResource Muted}"
+                           Text="Cheia privata nu paraseste acest dispozitiv. Ca sa-l autorizezi, ruleaza comanda de mai jos pe Hub (Raspberry Pi) si pe fiecare PC/laptop cu agent." />
+
+                    <Label Text="Id client" Style="{StaticResource Muted}" Margin="0,6,0,0" />
+                    <Label Text="{Binding ClientId}" Style="{StaticResource Mono}" />
+
+                    <Label Text="Cheie publica" Style="{StaticResource Muted}" Margin="0,6,0,0" />
+                    <Label Text="{Binding PublicKey}" Style="{StaticResource Mono}" />
+
+                    <Border BackgroundColor="White" StrokeThickness="0" StrokeShape="RoundRectangle 12" Padding="8" HorizontalOptions="Center">
+                        <Image Source="{Binding QrCode}" WidthRequest="200" HeightRequest="200" />
+                    </Border>
+
+                    <Button Text="Trimite cheia si comenzile" Command="{Binding ShareCommand}" />
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Text="Comanda Hub" StyleClass="secondary" Command="{Binding CopyCommand}" CommandParameter="hub" />
+                        <Button Grid.Column="1" Text="Comanda agent" StyleClass="secondary" Command="{Binding CopyCommand}" CommandParameter="agent" />
+                    </Grid>
+                    <Button Text="Copiaza doar cheia" StyleClass="secondary" Command="{Binding CopyCommand}" CommandParameter="key" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Avansat -->
+            <Label Text="Avansat" Style="{StaticResource Section}" />
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Style="{StaticResource Muted}"
+                           Text="Daca telefonul a fost pierdut, revoca acest client pe Hub si pe agenti (revoke-client). O cheie noua pe acest dispozitiv cere o noua autorizare." />
+                    <Button Text="Genereaza cheie noua" StyleClass="danger" Command="{Binding RegenerateKeyCommand}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <BoxView HeightRequest="8" Color="Transparent" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

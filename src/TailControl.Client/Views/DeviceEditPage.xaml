@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TailControl.Client.Views.DeviceEditPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:TailControl.Client.ViewModels"
+    x:DataType="vm:DeviceEditViewModel"
+    Title="{Binding Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="14">
+
+            <Border Style="{StaticResource Banner}" IsVisible="{Binding HasError}">
+                <Label Text="{Binding ErrorMessage}" />
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Nume" Style="{StaticResource Muted}" />
+                    <Entry Text="{Binding Name}" Placeholder="ex. PC birou" MaxLength="40" />
+                    <Label Text="{Binding NameError}" Style="{StaticResource FieldError}" IsVisible="{Binding NameError, Converter={StaticResource NotNull}}" />
+
+                    <Label Text="Nume MagicDNS (Tailscale)" Style="{StaticResource Muted}" Margin="0,8,0,0" />
+                    <Entry Text="{Binding Host}" Placeholder="ex. pc.tailnet-1234.ts.net" Keyboard="Url" IsSpellCheckEnabled="False" />
+                    <Label Text="{Binding HostError}" Style="{StaticResource FieldError}" IsVisible="{Binding HostError, Converter={StaticResource NotNull}}" />
+
+                    <Label Text="Adresa MAC (pentru pornire, optional)" Style="{StaticResource Muted}" Margin="0,8,0,0" />
+                    <Entry Text="{Binding MacAddress}" Placeholder="ex. AA:BB:CC:DD:EE:FF" IsSpellCheckEnabled="False" />
+                    <Label Text="{Binding MacError}" Style="{StaticResource FieldError}" IsVisible="{Binding MacError, Converter={StaticResource NotNull}}" />
+
+                    <Label Text="Port agent" Style="{StaticResource Muted}" Margin="0,8,0,0" />
+                    <Entry Text="{Binding AgentPort}" Keyboard="Numeric" />
+                    <Label Text="{Binding PortError}" Style="{StaticResource FieldError}" IsVisible="{Binding PortError, Converter={StaticResource NotNull}}" />
+
+                    <Label Text="Tip" Style="{StaticResource Muted}" Margin="0,8,0,0" />
+                    <Picker ItemsSource="{Binding Kinds}" SelectedItem="{Binding SelectedKind}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Button Text="Salveaza" Command="{Binding SaveCommand}" IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBool}}" />
+
+            <Label Style="{StaticResource Muted}"
+                   Text="Doar clientii autorizati ca admin pe Hub pot modifica inventarul." />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

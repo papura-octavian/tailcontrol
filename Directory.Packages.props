@@ -17,7 +17,8 @@
   <ItemGroup Label="Client">
     <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.20" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.14" />
-  </ItemGroup>
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageVersion Include="QRCoder" Version="1.8.1" />  </ItemGroup>
 
   <ItemGroup Label="Teste">
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
