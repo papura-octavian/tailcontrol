@@ -123,22 +123,55 @@ public sealed class AuthorizedClientsTests : IDisposable
         Assert.NotNull(file.LastError);
     }
 
+    // Testele de blocare sunt deterministe: blocarea se elibereaza din callback-ul de reincercare,
+    // nu dupa un timer, deci nu depind de cat de ocupat e thread pool-ul (runner-e CI cu 2 nuclee).
+
     [Fact]
-    public async Task Save_TargetBrieflyLocked_RetriesAndSucceeds()
+    public void Save_TargetLocked_RetriesAndSucceedsAfterRelease()
     {
         // Simuleaza un antivirus care tine fisierul deschis exclusiv in momentul inlocuirii.
         AuthorizedClientsFile.Save(_path, AuthorizedClientList.Empty);
         var locked = new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.None);
-        var release = Task.Run(async () =>
+        var retries = new List<int>();
+
+        try
         {
-            await Task.Delay(250);
-            await locked.DisposeAsync();
-        });
+            AuthorizedClientsFile.Save(
+                _path,
+                AuthorizedClientList.Empty.Authorize(_phone.PublicKey, "Telefon", true, TestSupport.Start, out _),
+                beforeRetry: attempt =>
+                {
+                    retries.Add(attempt);
+                    locked.Dispose();
+                });
+        }
+        finally
+        {
+            locked.Dispose();
+        }
 
-        AuthorizedClientsFile.Save(_path, AuthorizedClientList.Empty.Authorize(_phone.PublicKey, "Telefon", true, TestSupport.Start, out _));
-        await release;
-
+        Assert.Equal([1], retries);
         Assert.NotNull(AuthorizedClientList.Parse(File.ReadAllText(_path)).Find(_phone.ClientId));
+    }
+
+    [Fact]
+    public void Save_TargetLockedTooLong_GivesUpAfterMaxAttempts()
+    {
+        AuthorizedClientsFile.Save(_path, AuthorizedClientList.Empty);
+        var retries = new List<int>();
+
+        using (new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            var ex = Record.Exception(() => AuthorizedClientsFile.Save(
+                _path,
+                AuthorizedClientList.Empty.Authorize(_phone.PublicKey, "Telefon", true, TestSupport.Start, out _),
+                beforeRetry: retries.Add));
+
+            Assert.True(ex is IOException or UnauthorizedAccessException, $"Exceptie neasteptata: {ex}");
+        }
+
+        Assert.Equal(Enumerable.Range(1, AuthorizedClientsFile.SaveAttempts - 1), retries);
+        Assert.Empty(AuthorizedClientList.Parse(File.ReadAllText(_path)).Clients);
     }
 
     [Fact]
