@@ -34,7 +34,7 @@ public sealed class AgentEndpointTests : IAsyncLifetime
         _phone.Dispose();
         if (Directory.Exists(_dataDirectory))
         {
-            Directory.Delete(_dataDirectory, recursive: true);
+            TestSupport.DeleteQuietly(_dataDirectory);
         }
     }
 

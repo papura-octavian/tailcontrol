@@ -58,7 +58,7 @@ public sealed class SignatureMiddlewareTests : IAsyncLifetime
         await _app.DisposeAsync();
         _phone.Dispose();
         _stranger.Dispose();
-        File.Delete(_clientsPath);
+        TestSupport.DeleteQuietly(_clientsPath);
     }
 
     [Fact]

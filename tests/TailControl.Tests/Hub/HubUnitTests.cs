@@ -166,7 +166,7 @@ public sealed class HubUnitTests
         }
         finally
         {
-            Directory.Delete(directory, recursive: true);
+            TestSupport.DeleteQuietly(directory);
         }
     }
 
