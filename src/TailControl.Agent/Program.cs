@@ -7,18 +7,28 @@ var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
     ?? "Production";
 var isDevelopment = string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase);
 
+// Configurarea masinii (AllowedHosts, DryRun, certificat) e scrisa de installer in config\agent.json,
+// scriibil doar de administratori, ca sa supravietuiasca actualizarilor. Nu e citita in Development:
+// pe o masina cu agentul instalat, o rulare de dezvoltare ar mosteni altfel DryRun=false.
+var siteConfig = isDevelopment ? null : AgentOptions.SiteConfigPath();
+
+if (args is ["prepare-directories"])
+{
+    return AgentSetup.PrepareDirectories(LoadCliOptions(), isDevelopment, Console.Out);
+}
+
 // Comenzile de administrare (authorize-client etc.) nu pornesc serverul.
 if (AuthorizedClientsCli.IsCommand(args))
 {
-    var cliConfig = new ConfigurationBuilder()
-        .SetBasePath(contentRoot)
-        .AddJsonFile("appsettings.json", optional: true)
-        .AddJsonFile($"appsettings.{environment}.json", optional: true)
-        .Build();
-    return AuthorizedClientsCli.Run(args, AgentOptions.Load(cliConfig).ToCliContext(isDevelopment), Console.Out, TimeProvider.System);
+    return AuthorizedClientsCli.Run(args, LoadCliOptions().ToCliContext(isDevelopment), Console.Out, TimeProvider.System);
 }
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions { Args = args, ContentRootPath = contentRoot });
+if (siteConfig is not null)
+{
+    builder.Configuration.AddJsonFile(siteConfig, optional: true);
+}
+
 builder.Host.UseWindowsService(o => o.ServiceName = AgentOptions.ServiceName);
 
 var options = AgentOptions.Load(builder.Configuration);
@@ -47,6 +57,20 @@ app.LogAuthorizedClientsState();
 
 await app.RunAsync();
 return 0;
+
+AgentOptions LoadCliOptions()
+{
+    var config = new ConfigurationBuilder()
+        .SetBasePath(contentRoot)
+        .AddJsonFile("appsettings.json", optional: true)
+        .AddJsonFile($"appsettings.{environment}.json", optional: true);
+    if (siteConfig is not null)
+    {
+        config.AddJsonFile(siteConfig, optional: true);
+    }
+
+    return AgentOptions.Load(config.Build());
+}
 
 internal static partial class StartupLog
 {
