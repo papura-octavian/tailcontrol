@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Logica clientului fara dependente MAUI: setari, identitate, API, reguli. Testata automat. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TailControl.Shared\TailControl.Shared.csproj" />
+  </ItemGroup>
+
+</Project>
