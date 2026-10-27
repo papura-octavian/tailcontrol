@@ -11,6 +11,9 @@ $root = Resolve-Path (Join-Path $PSScriptRoot '..\..')
 $artifacts = Join-Path $root 'artifacts'
 $staging = Join-Path $artifacts 'client-windows-staging'
 
+# MAUI cere pentru versiunea afisata strict trei numere (0.1.0-test -> 0.1.0).
+$displayVersion = ($Version -split '[-+]')[0]
+
 if (-not $Iscc) {
     $Iscc = @(
         (Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'),
@@ -24,7 +27,7 @@ if (Test-Path $staging) { Remove-Item -Recurse -Force $staging }
 
 dotnet publish (Join-Path $root 'src\TailControl.Client') -f net10.0-windows10.0.19041.0 -c Release -p:RuntimeIdentifierOverride=win-x64 `
     -p:WindowsPackageType=None -p:WindowsAppSDKSelfContained=true -p:SelfContained=true `
-    -p:Version=$Version -p:ApplicationDisplayVersion=$Version -o $staging
+    -p:Version=$Version -p:ApplicationDisplayVersion=$displayVersion -o $staging
 if ($LASTEXITCODE -ne 0) { throw 'dotnet publish a esuat' }
 
 & $Iscc "/DAppVersion=$Version" "/DSourceDir=$staging" "/DOutputDir=$artifacts" (Join-Path $PSScriptRoot 'TailControlClient.iss')
