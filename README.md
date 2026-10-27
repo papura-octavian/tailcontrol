@@ -15,12 +15,14 @@ Control la distanta al propriilor dispozitive (pornire prin Wake-on-LAN, oprire,
 | `src/TailControl.Hub` | API pe Raspberry Pi: inventar, Wake-on-LAN, status (port 8443) |
 | `src/TailControl.Client` | Aplicatia .NET MAUI (Android + Windows) |
 | `tests/TailControl.Tests` | Teste automate |
+| `deploy/hub` | Unitati systemd, script de instalare si de impachetare pentru Pi |
 | `tools/` | Utilitare si teste de fezabilitate (ex. smoke test SQLite pe Pi) |
 
 ## Documentatie
 
 - [Protocolul de semnare a cererilor](docs/protocol-semnare.md)
 - [Agentul Windows](docs/agent.md)
+- [Hub-ul pe Raspberry Pi](docs/hub.md)
 
 ## Build
 
