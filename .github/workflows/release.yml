@@ -1,0 +1,163 @@
+# Release la un tag de versiune (v1.2.3): construieste toate artefactele, calculeaza SHA-256 si
+# publica un GitHub Release. Poate fi pornit si manual (workflow_dispatch) ca test: atunci
+# artefactele raman doar ca artifacts ale rularii, fara Release.
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Versiune de test (ex. 0.1.0)"
+        required: true
+        default: "0.0.0"
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+  VERSION: ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
+
+jobs:
+  test:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Teste
+        run: dotnet test tests/TailControl.Tests -c Release
+
+  hub:
+    needs: test
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Pachet Hub (linux-arm)
+        run: ./deploy/hub/build-package.ps1 -Version ($env:VERSION.TrimStart('v'))
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: hub
+          path: artifacts/tailcontrol-hub-linux-arm.tar.gz
+          if-no-files-found: error
+
+  agent:
+    needs: test
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Inno Setup
+        run: choco install innosetup --no-progress -y
+      - name: Installer agent
+        run: ./deploy/agent/build-installer.ps1 -Version ($env:VERSION.TrimStart('v'))
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: agent
+          path: artifacts/TailControl-Agent-Setup-*.exe
+          if-no-files-found: error
+
+  client-windows:
+    needs: test
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Workload-uri MAUI
+        run: dotnet workload install maui-android maui-windows
+      - name: Inno Setup
+        run: choco install innosetup --no-progress -y
+      - name: Installer client Windows
+        run: ./deploy/client-windows/build-installer.ps1 -Version ($env:VERSION.TrimStart('v'))
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: client-windows
+          path: artifacts/TailControl-Client-Setup-*.exe
+          if-no-files-found: error
+
+  client-android:
+    needs: test
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Workload-uri MAUI
+        run: dotnet workload install maui-android maui-windows
+      - name: Dependinte Android SDK
+        run: dotnet build src/TailControl.Client -t:InstallAndroidDependencies -f net10.0-android -p:AndroidSdkDirectory="$env:ANDROID_HOME" -p:AcceptAndroidSDKLicenses=true
+      - name: APK semnat
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./deploy/client-android/build-apk.ps1 -Version ($env:VERSION.TrimStart('v')) -VersionCode ${{ github.run_number }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: client-android
+          path: artifacts/TailControl-*.apk
+          if-no-files-found: error
+
+  publish:
+    needs: [hub, agent, client-windows, client-android]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: release
+          merge-multiple: true
+
+      - name: SHA-256
+        working-directory: release
+        run: |
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Artefacte (rulare manuala)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-${{ env.VERSION }}
+          path: release
+
+      - name: GitHub Release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" release/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "TailControl $TAG" \
+            --notes "Instalare: vezi docs/setup-checklist.md. Verifica fisierele cu SHA256SUMS.txt (sha256sum -c SHA256SUMS.txt)."
