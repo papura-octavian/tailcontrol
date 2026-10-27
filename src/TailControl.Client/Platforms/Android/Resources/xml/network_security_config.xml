@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  HTTP necriptat e interzis peste tot, cu exceptia numelor din tailnet (*.ts.net), unde e
+  fallback-ul documentat pentru agenti fara certificat (traficul e oricum criptat de WireGuard).
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">ts.net</domain>
+    </domain-config>
+</network-security-config>

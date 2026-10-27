@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TailControl.Client.Views.DevicesPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:TailControl.Client.ViewModels"
+    x:DataType="vm:DevicesViewModel"
+    Title="Dispozitive">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Adauga" Command="{Binding AddCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <Grid RowDefinitions="Auto,*" Padding="16,8,16,0" RowSpacing="12">
+
+        <Border Style="{StaticResource Banner}" IsVisible="{Binding HasError}">
+            <Label Text="{Binding ErrorMessage}" />
+        </Border>
+
+        <!-- Hub neconfigurat -->
+        <VerticalStackLayout
+            Grid.Row="1"
+            Spacing="16"
+            VerticalOptions="Center"
+            IsVisible="{Binding IsConfigured, Converter={StaticResource InvertBool}}">
+            <Label Text="Bun venit in TailControl" Style="{StaticResource Title}" HorizontalOptions="Center" />
+            <Label
+                Text="Ca sa vezi si sa controlezi dispozitivele, seteaza adresa Hub-ului (Raspberry Pi) si autorizeaza acest dispozitiv."
+                Style="{StaticResource Muted}"
+                HorizontalTextAlignment="Center" />
+            <Button Text="Deschide setarile" Command="{Binding OpenSettingsCommand}" HorizontalOptions="Center" />
+        </VerticalStackLayout>
+
+        <RefreshView
+            Grid.Row="1"
+            IsVisible="{Binding IsConfigured}"
+            IsRefreshing="{Binding IsRefreshing}"
+            Command="{Binding RefreshCommand}">
+            <CollectionView ItemsSource="{Binding Devices}" SelectionMode="None">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                </CollectionView.ItemsLayout>
+
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Padding="24" Spacing="8" IsVisible="{Binding IsEmpty, Source={RelativeSource AncestorType={x:Type vm:DevicesViewModel}}, x:DataType=vm:DevicesViewModel}">
+                        <Label Text="Niciun dispozitiv inca" Style="{StaticResource Heading}" HorizontalOptions="Center" />
+                        <Label Text="Adauga PC-ul sau laptopul cu butonul Adauga." Style="{StaticResource Muted}" HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:DeviceItem">
+                        <Border Style="{StaticResource Card}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding OpenCommand, Source={RelativeSource AncestorType={x:Type vm:DevicesViewModel}}, x:DataType=vm:DevicesViewModel}"
+                                    CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                                <Ellipse Style="{StaticResource StatusDot}">
+                                    <Ellipse.Triggers>
+                                        <DataTrigger TargetType="Ellipse" Binding="{Binding IsOnline}" Value="True">
+                                            <Setter Property="Fill" Value="{StaticResource OnlineBrush}" />
+                                        </DataTrigger>
+                                    </Ellipse.Triggers>
+                                </Ellipse>
+
+                                <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                    <Label Text="{Binding Name}" Style="{StaticResource Heading}" />
+                                    <Label Text="{Binding StatusText}" Style="{StaticResource Muted}" />
+                                </VerticalStackLayout>
+
+                                <Border Grid.Column="2" Style="{StaticResource Chip}" VerticalOptions="Center">
+                                    <Label Text="{Binding KindText}" FontSize="12" />
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+                <CollectionView.Footer>
+                    <BoxView HeightRequest="16" Color="Transparent" />
+                </CollectionView.Footer>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

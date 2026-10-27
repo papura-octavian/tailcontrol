@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="TailControl.Client.Views.DeviceDetailPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:TailControl.Client.ViewModels"
+    x:DataType="vm:DeviceDetailViewModel"
+    Title="{Binding Title}">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Editeaza" Command="{Binding EditCommand}" />
+        <ToolbarItem Text="Sterge" Command="{Binding DeleteCommand}" Order="Secondary" />
+    </ContentPage.ToolbarItems>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="14">
+
+            <!-- Status -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="10">
+                    <HorizontalStackLayout Spacing="12">
+                        <Ellipse Style="{StaticResource StatusDot}" WidthRequest="16" HeightRequest="16">
+                            <Ellipse.Triggers>
+                                <DataTrigger TargetType="Ellipse" Binding="{Binding IsOnline}" Value="True">
+                                    <Setter Property="Fill" Value="{StaticResource OnlineBrush}" />
+                                </DataTrigger>
+                            </Ellipse.Triggers>
+                        </Ellipse>
+                        <Label Text="{Binding StatusText}" Style="{StaticResource Heading}" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+
+                    <Label Text="{Binding Device.Host}" Style="{StaticResource Muted}" />
+                    <Label Text="{Binding Device.MacAddress, StringFormat='MAC {0}'}" Style="{StaticResource Muted}"
+                           IsVisible="{Binding Device.MacAddress, Converter={StaticResource NotNull}}" />
+                    <Label Text="{Binding AgentInfo}" Style="{StaticResource Muted}"
+                           IsVisible="{Binding AgentInfo, Converter={StaticResource NotNull}}" />
+
+                    <Border Style="{StaticResource Chip}" HorizontalOptions="Start" IsVisible="{Binding IsDryRun}">
+                        <Label Text="Agent in modul DryRun: comenzile sunt doar logate" FontSize="12" />
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Oprire programata -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding CanCancelShutdown}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="{Binding ShutdownCountdown}" Style="{StaticResource Heading}" />
+                    <Button Text="Anuleaza oprirea" StyleClass="warning" Command="{Binding CancelShutdownCommand}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Rezultatul ultimei comenzi -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding HasMessage}">
+                <Label Text="{Binding Message}" />
+            </Border>
+            <Border Style="{StaticResource Banner}" IsVisible="{Binding HasError}">
+                <Label Text="{Binding ErrorMessage}" />
+            </Border>
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" HeightRequest="32" />
+
+            <!-- Comenzi -->
+            <Label Text="Comenzi" Style="{StaticResource Section}" />
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+                <Button Text="Porneste" Command="{Binding WakeCommand}" IsEnabled="{Binding CanWake}" />
+                <Button Grid.Column="1" Text="Opreste" StyleClass="danger" Command="{Binding ShutdownCommand}" IsEnabled="{Binding CanShutdown}" />
+                <Button Grid.Row="1" Text="Blocheaza" StyleClass="secondary" Command="{Binding LockCommand}" IsEnabled="{Binding CanLock}" />
+                <Button Grid.Row="1" Grid.Column="1" Text="Adoarme" StyleClass="secondary" Command="{Binding SleepCommand}" IsEnabled="{Binding CanSleep}" />
+            </Grid>
+
+            <Label Text="{Binding WakeHint}" Style="{StaticResource Muted}" IsVisible="{Binding WakeHint, Converter={StaticResource NotNull}}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
