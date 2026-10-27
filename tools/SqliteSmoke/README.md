@@ -131,6 +131,18 @@ pkill -f SqliteSmoke; cd ~ && rm -rf sqlite-smoke-linux-arm sqlite-smoke-linux-a
 - iesirea de la `ldd ./libe_sqlite3.so`;
 - daca ceva nu merge, si continutul fisierului `smoke.log`.
 
+## Rezultat (Pi 3B, Raspbian 12 armhf, 2026-10-27)
+
+| Masuratoare | Valoare |
+|---|---|
+| `/health` | `ok`, `rows` creste 1 → 2 → 3, apoi 4 dupa repornire (persistenta confirmata) |
+| SQLite | 3.53.3, `e_sqlite3` incarcata din pachet (`ldd`: doar `libc` si `libarmmem`) |
+| Primul apel dupa pornire | ~5.3 s (JIT + constructia modelului EF Core), apoi ~20 ms |
+| VmRSS / VmHWM | ~93 MB / ~93 MB (fata de ~57 MB pentru ASP.NET Core fara EF Core) |
+| Memorie disponibila pe Pi | 647 MB din 921 MB, cu Pi-hole pornit |
+
+Concluzie: biblioteca nativa SQLite inclusa in pachet merge pe ARM32, deci planul B nu e necesar. Pentru Hub vom folosi build ReadyToRun si o interogare de incalzire la pornire, ca primul apel venit de la client sa nu dureze cateva secunde.
+
 ## Daca biblioteca nativa nu merge pe ARM32
 
 Simptomul tipic este `DllNotFoundException: e_sqlite3` sau o eroare de incarcare a `libe_sqlite3.so` in `smoke.log`. Alternativele, in ordinea preferintei:
