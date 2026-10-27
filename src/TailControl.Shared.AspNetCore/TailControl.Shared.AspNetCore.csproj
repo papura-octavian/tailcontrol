@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Cod comun pentru serverele ASP.NET Core (Agent si Hub). Separat de
+       TailControl.Shared ca clientul MAUI sa nu depinda de ASP.NET Core. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TailControl.Shared\TailControl.Shared.csproj" />
+  </ItemGroup>
+
+</Project>
