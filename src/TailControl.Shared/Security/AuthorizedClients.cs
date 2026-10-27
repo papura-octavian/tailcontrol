@@ -221,11 +221,20 @@ public sealed class AuthorizedClientsFile(string path) : IAuthorizedClientStore
         }
     }
 
+    /// <summary>De cate ori se incearca inlocuirea fisierului inainte de a renunta.</summary>
+    internal const int SaveAttempts = 5;
+
     /// <summary>
     /// Scrie lista atomic (fisier temporar + rename). Pe Windows, un antivirus care scaneaza fisierul
     /// il poate bloca pentru scurt timp, asa ca inlocuirea se reincearca de cateva ori.
     /// </summary>
-    public static void Save(string path, AuthorizedClientList list)
+    public static void Save(string path, AuthorizedClientList list) => Save(path, list, beforeRetry: null);
+
+    /// <param name="beforeRetry">
+    /// Doar pentru teste: apelat dupa fiecare incercare esuata, cu numarul ei, inainte de pauza.
+    /// Permite teste deterministe, care nu depind de cat de repede ruleaza thread-urile.
+    /// </param>
+    internal static void Save(string path, AuthorizedClientList list, Action<int>? beforeRetry)
     {
         var fullPath = System.IO.Path.GetFullPath(path);
         var temp = fullPath + ".tmp";
@@ -238,8 +247,9 @@ public sealed class AuthorizedClientsFile(string path) : IAuthorizedClientStore
                 File.Move(temp, fullPath, overwrite: true);
                 return;
             }
-            catch (Exception ex) when (attempt < 5 && ex is IOException or UnauthorizedAccessException)
+            catch (Exception ex) when (attempt < SaveAttempts && ex is IOException or UnauthorizedAccessException)
             {
+                beforeRetry?.Invoke(attempt);
                 Thread.Sleep(100 * attempt);
             }
         }
