@@ -36,6 +36,16 @@ public sealed class AgentConfigurationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(System.Net.NetworkInformation.OperationalStatus.Up, true)]
+    [InlineData(System.Net.NetworkInformation.OperationalStatus.Unknown, true)] // tailscale0 pe Linux
+    [InlineData(System.Net.NetworkInformation.OperationalStatus.Down, false)]
+    [InlineData(System.Net.NetworkInformation.OperationalStatus.NotPresent, false)]
+    public void IsUsable_AcceptsUnknownStateOfTunInterfaces(System.Net.NetworkInformation.OperationalStatus status, bool expected)
+    {
+        Assert.Equal(expected, TailscaleNetwork.IsUsable(status));
+    }
+
+    [Theory]
     [InlineData("0.0.0.0")]
     [InlineData("::")]
     [InlineData("192.168.0.10")]
@@ -63,13 +73,13 @@ public sealed class AgentConfigurationTests : IDisposable
     {
         var config = Config(("AllowedHosts", allowedHosts));
 
-        Assert.Throws<InvalidOperationException>(() => AgentHosting.ValidateConfiguration(config, isDevelopment: false));
+        Assert.Throws<InvalidOperationException>(() => TailscaleHosting.ValidateConfiguration(config, isDevelopment: false));
     }
 
     [Fact]
     public void ValidateConfiguration_Production_AcceptsMagicDnsName()
     {
-        AgentHosting.ValidateConfiguration(Config(("AllowedHosts", "pc.example.ts.net")), isDevelopment: false);
+        TailscaleHosting.ValidateConfiguration(Config(("AllowedHosts", "pc.example.ts.net")), isDevelopment: false);
     }
 
     [Fact]
@@ -77,7 +87,7 @@ public sealed class AgentConfigurationTests : IDisposable
     {
         var config = Config(("AllowedHosts", "pc.example.ts.net"), ("Kestrel:Endpoints:Any:Url", "http://0.0.0.0:8444"));
 
-        Assert.Throws<InvalidOperationException>(() => AgentHosting.ValidateConfiguration(config, isDevelopment: true));
+        Assert.Throws<InvalidOperationException>(() => TailscaleHosting.ValidateConfiguration(config, isDevelopment: true));
     }
 
     [Theory]
@@ -110,12 +120,12 @@ public sealed class AgentConfigurationTests : IDisposable
         var options = new AgentOptions { DataDirectory = _directory };
         var output = new StringWriter();
 
-        Assert.Equal(0, AdminCli.Run(["authorize-client", "--key", phone.PublicKey, "--label", "Telefon"], options, true, output, TimeProvider.System));
-        Assert.Equal(1, AdminCli.Run(["authorize-client", "--key", phone.PublicKey, "--label", "Alt"], options, true, output, TimeProvider.System));
-        Assert.Equal(0, AdminCli.Run(["list-clients"], options, true, output, TimeProvider.System));
+        Assert.Equal(0, AuthorizedClientsCli.Run(["authorize-client", "--key", phone.PublicKey, "--label", "Telefon"], options.ToCliContext(isDevelopment: true), output, TimeProvider.System));
+        Assert.Equal(1, AuthorizedClientsCli.Run(["authorize-client", "--key", phone.PublicKey, "--label", "Alt"], options.ToCliContext(isDevelopment: true), output, TimeProvider.System));
+        Assert.Equal(0, AuthorizedClientsCli.Run(["list-clients"], options.ToCliContext(isDevelopment: true), output, TimeProvider.System));
         Assert.Contains(phone.ClientId, output.ToString(), StringComparison.Ordinal);
 
-        Assert.Equal(0, AdminCli.Run(["revoke-client", "--id", phone.ClientId], options, true, output, TimeProvider.System));
+        Assert.Equal(0, AuthorizedClientsCli.Run(["revoke-client", "--id", phone.ClientId], options.ToCliContext(isDevelopment: true), output, TimeProvider.System));
         Assert.True(AuthorizedClientsFile.LoadOrEmpty(options.AuthorizedClientsPath).Find(phone.ClientId)!.Client.IsRevoked);
     }
 
@@ -128,15 +138,15 @@ public sealed class AgentConfigurationTests : IDisposable
     {
         var options = new AgentOptions { DataDirectory = _directory };
 
-        Assert.NotEqual(0, AdminCli.Run(args, options, true, new StringWriter(), TimeProvider.System));
+        Assert.NotEqual(0, AuthorizedClientsCli.Run(args, options.ToCliContext(isDevelopment: true), new StringWriter(), TimeProvider.System));
     }
 
     [Fact]
     public void AdminCli_IsAdminCommand_OnlyForKnownCommands()
     {
-        Assert.True(AdminCli.IsAdminCommand(["authorize-client"]));
-        Assert.False(AdminCli.IsAdminCommand([]));
-        Assert.False(AdminCli.IsAdminCommand(["--urls=http://0.0.0.0:1"]));
+        Assert.True(AuthorizedClientsCli.IsCommand(["authorize-client"]));
+        Assert.False(AuthorizedClientsCli.IsCommand([]));
+        Assert.False(AuthorizedClientsCli.IsCommand(["--urls=http://0.0.0.0:1"]));
     }
 
     [Fact]

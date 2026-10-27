@@ -1,0 +1,8 @@
+{
+  "AllowedHosts": "pi-exemplu.tailnet-0000.ts.net",
+  "Hub": {
+    "WakeBroadcastAddress": "192.168.1.255",
+    "CertificatePath": "/etc/tailcontrol/hub/certs/hub.crt",
+    "CertificateKeyPath": "/etc/tailcontrol/hub/certs/hub.key"
+  }
+}

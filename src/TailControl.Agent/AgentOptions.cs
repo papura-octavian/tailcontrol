@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using TailControl.Shared.AspNetCore;
 using TailControl.Shared.Contracts;
 
 namespace TailControl.Agent;
@@ -48,6 +49,20 @@ public sealed class AgentOptions
     public string AuditLogPath => Path.Combine(LogDirectory, "audit.log");
 
     public bool HasCertificate => !string.IsNullOrWhiteSpace(CertificatePath);
+
+    public TailscaleListenSettings ToListenSettings() =>
+        new(Port, ListenAddresses, TailscaleWaitSeconds, CertificatePath, CertificateKeyPath);
+
+    /// <summary>Contextul pentru <c>authorize-client</c> / <c>revoke-client</c> / <c>list-clients</c>.</summary>
+    public AuthorizedClientsCliContext ToCliContext(bool isDevelopment) => new()
+    {
+        ProgramName = "TailControl.Agent.exe",
+        AuthorizedClientsPath = AuthorizedClientsPath,
+        RequireElevation = !isDevelopment,
+        PrepareConfigDirectory = isDevelopment
+            ? path => Directory.CreateDirectory(path)
+            : SecureDirectories.EnsureConfigDirectory,
+    };
 
     private string ResolvedDataDirectory => Path.GetFullPath(DataDirectory, AppContext.BaseDirectory);
 

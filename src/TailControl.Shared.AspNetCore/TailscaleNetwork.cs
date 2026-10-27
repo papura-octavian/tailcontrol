@@ -32,7 +32,7 @@ public static class TailscaleNetwork
     /// <summary>Adresele Tailscale ale interfetelor active de pe aceasta masina (IPv4 intai).</summary>
     public static IReadOnlyList<IPAddress> FindLocalAddresses() =>
         [.. NetworkInterface.GetAllNetworkInterfaces()
-            .Where(n => n.OperationalStatus == OperationalStatus.Up)
+            .Where(n => IsUsable(n.OperationalStatus))
             .SelectMany(n => n.GetIPProperties().UnicastAddresses)
             .Select(u => u.Address)
             .Where(IsTailscaleAddress)
@@ -40,19 +40,34 @@ public static class TailscaleNetwork
             .OrderBy(a => a.AddressFamily == AddressFamily.InterNetwork ? 0 : 1)];
 
     /// <summary>
+    /// Pe Linux, interfetele tun (inclusiv <c>tailscale0</c>) raporteaza starea <c>UNKNOWN</c>,
+    /// nu <c>UP</c>, chiar cand functioneaza. Excludem doar interfetele oprite.
+    /// </summary>
+    public static bool IsUsable(OperationalStatus status) =>
+        status is OperationalStatus.Up or OperationalStatus.Unknown;
+
+    /// <summary>
     /// Asteapta ca Tailscale sa porneasca (la boot serviciul poate porni inaintea lui).
     /// Intoarce lista goala daca nu apare nicio adresa in timpul dat.
+    /// <paramref name="onWaiting"/> e apelat o data, cand incepe asteptarea (inainte sa existe logger).
     /// </summary>
     public static async Task<IReadOnlyList<IPAddress>> WaitForLocalAddressesAsync(
-        TimeSpan timeout, TimeSpan pollInterval, CancellationToken cancellationToken)
+        TimeSpan timeout, TimeSpan pollInterval, CancellationToken cancellationToken, Action<string>? onWaiting = null)
     {
         var deadline = DateTime.UtcNow + timeout;
+        var announced = false;
         while (true)
         {
             var found = FindLocalAddresses();
             if (found.Count > 0 || DateTime.UtcNow >= deadline)
             {
                 return found;
+            }
+
+            if (!announced)
+            {
+                onWaiting?.Invoke($"Nicio adresa Tailscale inca; astept pana la {timeout.TotalSeconds:0} s...");
+                announced = true;
             }
 
             await Task.Delay(pollInterval, cancellationToken).ConfigureAwait(false);
