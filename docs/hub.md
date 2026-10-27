@@ -122,13 +122,15 @@ Fara semnatura, raspunsul trebuie sa fie `401`:
 curl -sk -o /dev/null -w "%{http_code}\n" https://<nume-pi>.<tailnet>.ts.net:8443/v1/devices
 ```
 
-Memoria folosita de serviciu:
+Memoria folosita de serviciu (RSS si varf, in kB):
 
 ```bash
-systemctl show tailcontrol-hub -p MemoryCurrent
+sudo grep -E 'VmRSS|VmHWM' /proc/$(pgrep -f /opt/tailcontrol-hub/TailControl.Hub)/status
 ```
 
-Scorul de hardening systemd (mai mic = mai bine):
+**Limita `MemoryMax=300M`**: pe Raspberry Pi OS, controller-ul de memorie al cgroup-urilor e dezactivat implicit. In acest caz `systemctl show tailcontrol-hub -p MemoryCurrent` afiseaza `[not set]`, iar limita **nu se aplica**. Daca vrei sa o activezi, adaugi manual `cgroup_enable=memory` la sfarsitul singurei linii din `/boot/firmware/cmdline.txt` si repornesti Pi-ul. E o setare de sistem, deci pas manual, optional.
+
+Scorul de hardening systemd (mai mic = mai bine; pe Pi-ul de test: **1.5 OK**):
 
 ```bash
 systemd-analyze security tailcontrol-hub --no-pager | tail -1
