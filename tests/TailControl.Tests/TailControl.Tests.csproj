@@ -1,10 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <!-- Windows: testeaza si agentul (named pipes, ACL). CI ruleaza pe windows-latest. -->
+    <TargetFramework>net10.0-windows</TargetFramework>
     <IsPackable>false</IsPackable>
-    <!-- Numele testelor au forma Metoda_Conditie_Rezultat. -->
-    <NoWarn>$(NoWarn);CA1707;CA2007</NoWarn>
+    <!-- Numele testelor au forma Metoda_Conditie_Rezultat; IAsyncLifetime face curatenia (CA1001). -->
+    <NoWarn>$(NoWarn);CA1707;CA2007;CA1001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\TailControl.Shared\TailControl.Shared.csproj" />
     <ProjectReference Include="..\..\src\TailControl.Shared.AspNetCore\TailControl.Shared.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\TailControl.Agent\TailControl.Agent.csproj" />
   </ItemGroup>
 
   <ItemGroup>
