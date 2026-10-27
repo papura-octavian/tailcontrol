@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <IsPackable>false</IsPackable>
+    <!-- Numele testelor au forma Metoda_Conditie_Rezultat. -->
+    <NoWarn>$(NoWarn);CA1707;CA2007</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,6 +12,13 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\TailControl.Shared\TailControl.Shared.csproj" />
+    <ProjectReference Include="..\..\src\TailControl.Shared.AspNetCore\TailControl.Shared.AspNetCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>
