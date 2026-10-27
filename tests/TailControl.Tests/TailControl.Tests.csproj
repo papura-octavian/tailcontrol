@@ -21,6 +21,7 @@
     <ProjectReference Include="..\..\src\TailControl.Shared\TailControl.Shared.csproj" />
     <ProjectReference Include="..\..\src\TailControl.Shared.AspNetCore\TailControl.Shared.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\TailControl.Agent\TailControl.Agent.csproj" />
+    <ProjectReference Include="..\..\src\TailControl.Hub\TailControl.Hub.csproj" />
   </ItemGroup>
 
   <ItemGroup>
