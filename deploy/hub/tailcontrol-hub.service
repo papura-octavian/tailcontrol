@@ -1,0 +1,58 @@
+[Unit]
+Description=TailControl Hub (inventar, Wake-on-LAN, status)
+Documentation=https://github.com/papura-octavian/tailcontrol
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=notify
+User=tailcontrol-hub
+Group=tailcontrol-hub
+WorkingDirectory=/opt/tailcontrol-hub
+ExecStart=/opt/tailcontrol-hub/TailControl.Hub
+Environment=DOTNET_ENVIRONMENT=Production
+Environment=TAILCONTROL_HUB_CONFIG=/etc/tailcontrol/hub/hub.json
+# Fara debugger/profiler/EventPipe atasabile din exterior.
+Environment=DOTNET_EnableDiagnostics=0
+Restart=on-failure
+RestartSec=10
+
+# Baza de date: /var/lib/tailcontrol-hub (singurul loc unde serviciul poate scrie).
+StateDirectory=tailcontrol-hub
+StateDirectoryMode=0750
+UMask=0077
+
+# Lasa loc pentru Pi-hole.
+MemoryMax=300M
+
+# Hardening
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+RemoveIPC=yes
+# AF_NETLINK: enumerarea interfetelor (gasirea adresei Tailscale).
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+# Un apel blocat intoarce EPERM in loc sa omoare procesul.
+SystemCallErrorNumber=EPERM
+# ProcSubset=pid nu e activat: runtime-ul .NET citeste /proc/meminfo pentru limitele GC.
+# MemoryDenyWriteExecute nu e activat: JIT-ul .NET are nevoie de memorie executabila generata la rulare.
+
+[Install]
+WantedBy=multi-user.target

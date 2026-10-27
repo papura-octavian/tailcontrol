@@ -1,0 +1,11 @@
+[Unit]
+Description=TailControl Hub: reinnoire saptamanala a certificatului
+
+[Timer]
+OnBootSec=5min
+OnCalendar=weekly
+RandomizedDelaySec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

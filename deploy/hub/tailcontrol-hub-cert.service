@@ -1,0 +1,8 @@
+[Unit]
+Description=TailControl Hub: reinnoire certificat HTTPS (tailscale cert)
+After=tailscaled.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/tailcontrol-hub/renew-cert.sh
