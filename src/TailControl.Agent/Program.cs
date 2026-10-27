@@ -43,6 +43,8 @@ else
     StartupLog.LiveMode(app.Logger);
 }
 
+app.LogAuthorizedClientsState();
+
 await app.RunAsync();
 return 0;
 
