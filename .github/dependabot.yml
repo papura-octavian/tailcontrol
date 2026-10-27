@@ -1,0 +1,30 @@
+version: 2
+updates:
+  # Pachetele NuGet sunt fixate central in Directory.Packages.props.
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      dotnet-runtime:
+        patterns:
+          - "Microsoft.*"
+          - "System.*"
+      testing:
+        patterns:
+          - "xunit*"
+          - "coverlet*"
+          - "Microsoft.NET.Test.Sdk"
+
+  # Actiunile sunt fixate pe SHA; Dependabot le actualizeaza.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+
+  # Versiunea SDK-ului din global.json.
+  - package-ecosystem: dotnet-sdk
+    directory: "/"
+    schedule:
+      interval: monthly

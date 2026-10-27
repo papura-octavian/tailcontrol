@@ -78,9 +78,30 @@ TailControl.Agent.exe list-clients
 
 Prima autorizare creeaza `config\` si ii aplica ACL-ul de mai sus. Codul e comun cu Hub-ul (`AuthorizedClientsCli`). Revocarea are efect imediat, fara repornirea serviciului.
 
-## Configurare (`appsettings.json` langa executabil)
+## Instalare
 
-Un exemplu complet, cu valori fictive, e in `src/TailControl.Agent/appsettings.example.json`.
+Se face cu `TailControl-Agent-Setup-<versiune>.exe` din Releases (pasii completi sunt in [setup-checklist.md](setup-checklist.md)). Installerul:
+
+1. copiaza aplicatia **self-contained** (nu cere runtime .NET instalat) in `C:\Program Files\TailControl\Agent`;
+2. ruleaza `TailControl.Agent.exe prepare-directories`, care creeaza `config\` si `logs\` cu ACL-urile de mai sus;
+3. la prima instalare scrie `config\agent.json` (numele MagicDNS, DryRun, certificatul). La actualizare il pastreaza;
+4. obtine certificatul cu `tailscale cert` (scriptul `renew-cert.ps1`) si creeaza task-ul programat saptamanal `TailControl\AgentCertRenew`, care ruleaza ca SYSTEM;
+5. adauga regula de firewall *TailControl Agent (Tailscale)*: TCP 8444, doar din 100.64.0.0/10, doar pentru `TailControl.Agent.exe`;
+6. creeaza serviciul `TailControlAgent`:
+   - cont LocalService, pornire automata intarziata;
+   - repornire la esec;
+   - privilegii restranse cu `sc privs` la `SeShutdownPrivilege`, `SeChangeNotifyPrivilege` si `SeCreateGlobalPrivilege`;
+7. porneste helper-ul de blocare acum si la fiecare logare (`HKLM\...\Run`).
+
+Dezinstalarea opreste si sterge serviciul, regula de firewall, task-ul si cheia `Run`. Te intreaba daca sterge si datele din `%ProgramData%\TailControl\Agent`.
+
+## Configurare
+
+Valorile implicite sunt in `appsettings.json`, langa executabil. Configurarea masinii sta in `%ProgramData%\TailControl\Agent\config\agent.json`: e scriibila doar de administratori, e scrisa de installer si supravietuieste actualizarilor. Calea se poate schimba cu variabila de mediu `TAILCONTROL_AGENT_CONFIG`.
+
+`agent.json` **nu** e citit in Development. Altfel, pe un PC cu agentul instalat, o rulare de dezvoltare ar mosteni `DryRun=false`.
+
+Un exemplu, cu valori fictive, e in `src/TailControl.Agent/appsettings.example.json`. Dupa orice modificare: `Restart-Service TailControlAgent`.
 
 | Cheie | Implicit | Note |
 |---|---|---|
@@ -102,11 +123,9 @@ dotnet run --project src/TailControl.Agent
 
 Profilul de dezvoltare foloseste `DryRun=true`, asculta doar pe `127.0.0.1:8444` si tine datele in `bin\...\dev-data`. Comenzile sunt doar logate.
 
-## Ramane de verificat la instalarea reala (etapa 5)
+## De verificat la prima instalare reala
 
-Testele automate nu pot verifica urmatoarele, pentru ca ar opri masina de dezvoltare:
-- `shutdown.exe` si `SetSuspendState` rulate sub LocalService;
-- helper-ul pornit la logare (cheie `Run` in HKLM);
-- regula de firewall: 8444 permis doar din 100.64.0.0/10.
-
-Installerul si pasii de verificare vin in etapa 5.
+Testele automate nu pot verifica urmatoarele, pentru ca ar opri masina de dezvoltare. Pasii de test sunt in [setup-checklist.md](setup-checklist.md), sectiunea 2.
+- `shutdown.exe` si `SetSuspendState` rulate sub LocalService, cu privilegiile restranse;
+- helper-ul pornit la logare;
+- regula de firewall.

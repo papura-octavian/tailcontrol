@@ -1,0 +1,55 @@
+# Build + teste la fiecare push si PR. Ruleaza pe Windows: testele acopera si agentul (named
+# pipes, ACL), iar clientul MAUI se compileaza pentru Android si Windows.
+name: CI
+
+# Pe main la push; pe branch-urile de lucru doar prin PR (altfel fiecare push ar rula de doua ori).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+
+jobs:
+  build-test:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Workload-uri MAUI
+        run: dotnet workload install maui-android maui-windows
+
+      - name: Dependinte Android SDK
+        run: dotnet build src/TailControl.Client -t:InstallAndroidDependencies -f net10.0-android -p:AndroidSdkDirectory="$env:ANDROID_HOME" -p:AcceptAndroidSDKLicenses=true
+
+      - name: Build
+        run: dotnet build TailControl.slnx -c Release
+
+      - name: Teste
+        run: dotnet test tests/TailControl.Tests -c Release --no-build --logger "trx;LogFileName=tests.trx" --results-directory TestResults
+
+      - name: Rezultate teste
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-results
+          path: TestResults
+          retention-days: 14

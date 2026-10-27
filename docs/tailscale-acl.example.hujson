@@ -1,0 +1,54 @@
+// Exemplu de politica Tailscale (Access controls) pentru TailControl.
+// Se aplica MANUAL din consola Tailscale > Access controls. Inlocuieste adresele de email
+// fictive si pastreaza/adapteaza regulile pentru restul traficului tau.
+//
+// IMPORTANT: politica implicita Tailscale ({"src": ["*"], "dst": ["*:*"]}) permite oricui din
+// tailnet, inclusiv utilizatorilor cu care ai partajat dispozitive, sa ajunga la orice port.
+// Ea trebuie inlocuita cu reguli explicite ca cele de mai jos.
+//
+// Tag-uri (se pun din consola: Machines > ... > Edit ACL tags):
+//   tag:client  telefonul, laptopul, PC-ul (dispozitivele care trimit comenzi)
+//   tag:agent   PC-ul, laptopul (dispozitivele controlate)
+//   tag:hub     Raspberry Pi
+// Un dispozitiv poate avea mai multe tag-uri (PC-ul si laptopul: tag:client + tag:agent).
+{
+	"tagOwners": {
+		"tag:client": ["autogroup:admin"],
+		"tag:agent":  ["autogroup:admin"],
+		"tag:hub":    ["autogroup:admin"],
+	},
+
+	"acls": [
+		// Clientii ajung la agenti si la Hub, doar pe porturile TailControl.
+		{"action": "accept", "src": ["tag:client"], "dst": ["tag:agent:8444", "tag:hub:8443"]},
+
+		// Hub-ul verifica statusul agentilor (TCP connect pe 8444). Nimic altceva.
+		{"action": "accept", "src": ["tag:hub"], "dst": ["tag:agent:8444"]},
+
+		// --- Restul traficului tau obisnuit (adapteaza) ---
+		// SSH de pe dispozitivele tale catre Pi.
+		{"action": "accept", "src": ["tag:client"], "dst": ["tag:hub:22"]},
+		// Daca dispozitivele tale folosesc Pi-hole ca DNS prin Tailscale:
+		// {"action": "accept", "src": ["tag:client"], "dst": ["tag:hub:53"]},
+		// Daca folosesti RDP/AnyDesk direct prin Tailscale intre PC si laptop:
+		// {"action": "accept", "src": ["tag:client"], "dst": ["tag:agent:3389"]},
+	],
+
+	// Tailscale ruleaza testele la fiecare salvare si refuza politica daca un test pica.
+	"tests": [
+		{
+			"src":    "tag:client",
+			"accept": ["tag:agent:8444", "tag:hub:8443"],
+		},
+		{
+			"src":    "tag:hub",
+			"accept": ["tag:agent:8444"],
+			"deny":   ["tag:hub:8443"],
+		},
+		{
+			// Utilizatorul din alt cont, cu care ai partajat un dispozitiv: nu ajunge la TailControl.
+			"src":  "prieten@example.com",
+			"deny": ["tag:agent:8444", "tag:hub:8443", "tag:hub:22"],
+		},
+	],
+}

@@ -114,6 +114,22 @@ public sealed class AgentConfigurationTests : IDisposable
     }
 
     [Fact]
+    public void PrepareDirectories_CreatesConfigAndLogs()
+    {
+        var options = new AgentOptions { DataDirectory = _directory };
+
+        Assert.Equal(0, AgentSetup.PrepareDirectories(options, isDevelopment: true, new StringWriter()));
+        Assert.True(Directory.Exists(options.ConfigDirectory));
+        Assert.True(Directory.Exists(options.LogDirectory));
+    }
+
+    [Fact]
+    public void SiteConfigPath_DefaultsToProgramData()
+    {
+        Assert.EndsWith(Path.Combine("TailControl", "Agent", "config", "agent.json"), AgentOptions.SiteConfigPath(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void AdminCli_AuthorizeListRevoke()
     {
         using var phone = ClientIdentity.Create();

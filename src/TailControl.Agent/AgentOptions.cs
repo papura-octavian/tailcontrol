@@ -66,6 +66,14 @@ public sealed class AgentOptions
 
     private string ResolvedDataDirectory => Path.GetFullPath(DataDirectory, AppContext.BaseDirectory);
 
+    /// <summary>
+    /// Configurarea specifica masinii, scrisa de installer. Poate fi mutata cu variabila de
+    /// mediu <c>TAILCONTROL_AGENT_CONFIG</c>.
+    /// </summary>
+    public static string SiteConfigPath() =>
+        Environment.GetEnvironmentVariable("TAILCONTROL_AGENT_CONFIG")
+        ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "TailControl", "Agent", "config", "agent.json");
+
     public static AgentOptions Load(IConfiguration configuration)
     {
         var options = configuration.GetSection(SectionName).Get<AgentOptions>() ?? new AgentOptions();

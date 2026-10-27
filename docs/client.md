@@ -57,7 +57,9 @@ Eticheta din comenzi e numele dispozitivului, curatat de caractere speciale (far
 
 ## Instalare
 
-### Android (pana la release-ul semnat din etapa 5)
+### Android
+
+Versiunea de release (semnata cu cheia proiectului) e `TailControl-<versiune>.apk` din GitHub Releases (vezi [release.md](release.md)). Pentru un build local de test:
 
 APK-ul se construieste cu:
 
@@ -79,7 +81,7 @@ Pentru dezvoltare:
 dotnet build src/TailControl.Client -f net10.0-windows10.0.19041.0
 ```
 
-Executabilul e in `src/TailControl.Client/bin/Debug/net10.0-windows10.0.19041.0/win-x64/TailControl.Client.exe`. Installerul (Inno Setup, aplicatie unpackaged) vine in etapa 5.
+Executabilul e in `src/TailControl.Client/bin/Debug/net10.0-windows10.0.19041.0/win-x64/TailControl.Client.exe`. Pentru utilizare normala: `TailControl-Client-Setup-<versiune>.exe` din Releases (Inno Setup, per utilizator, fara administrator).
 
 ## Verificat
 
