@@ -11,6 +11,7 @@ Control la distanta al propriilor dispozitive (pornire prin Wake-on-LAN, oprire,
 | `src/TailControl.Shared` | Contracte (DTO), semnarea/verificarea cererilor, constante |
 | `src/TailControl.Shared.AspNetCore` | Middleware de verificare a semnaturilor, comun pentru Agent si Hub |
 | `src/TailControl.Agent` | Serviciu Windows pe fiecare dispozitiv controlat (port 8444) |
+| `src/TailControl.LockHelper` | Helper pornit in sesiunea utilizatorului, pentru blocare |
 | `src/TailControl.Hub` | API pe Raspberry Pi: inventar, Wake-on-LAN, status (port 8443) |
 | `src/TailControl.Client` | Aplicatia .NET MAUI (Android + Windows) |
 | `tests/TailControl.Tests` | Teste automate |
@@ -19,6 +20,7 @@ Control la distanta al propriilor dispozitive (pornire prin Wake-on-LAN, oprire,
 ## Documentatie
 
 - [Protocolul de semnare a cererilor](docs/protocol-semnare.md)
+- [Agentul Windows](docs/agent.md)
 
 ## Build
 
