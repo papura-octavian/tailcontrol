@@ -49,6 +49,13 @@ public sealed partial class LockBroker(LockBrokerOptions options, ILogger<LockBr
     : BackgroundService, ILockBroker
 {
     private readonly ConcurrentDictionary<HelperConnection, byte> _connections = new();
+    private readonly TaskCompletionSource _listening = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    /// <summary>
+    /// Completat cand primul pipe asteapta conexiuni. In .NET 10 StartAsync nu mai asteapta
+    /// pornirea lui ExecuteAsync, asa ca testele il folosesc ca sa nu se conecteze prea devreme.
+    /// </summary>
+    internal Task Listening => _listening.Task;
 
     public int ConnectedSessions => _connections.Keys.Select(c => c.SessionId).Distinct().Count();
 
@@ -84,6 +91,7 @@ public sealed partial class LockBroker(LockBrokerOptions options, ILogger<LockBr
             try
             {
                 pipe = CreatePipe(options.PipeName);
+                _listening.TrySetResult();
                 await pipe.WaitForConnectionAsync(stoppingToken).ConfigureAwait(false);
 
                 if (!NativeMethods.GetNamedPipeClientSessionId(pipe.SafePipeHandle.DangerousGetHandle(), out var sessionId)

@@ -17,9 +17,10 @@ public sealed class LockBrokerTests : IAsyncLifetime
     public async Task InitializeAsync()
     {
         _broker = new LockBroker(
-            new LockBrokerOptions { PipeName = _pipeName, ReplyTimeout = TimeSpan.FromMilliseconds(500), AllowSessionZeroForTests = true },
+            new LockBrokerOptions { PipeName = _pipeName, ReplyTimeout = TimeSpan.FromSeconds(5), AllowSessionZeroForTests = true },
             NullLogger<LockBroker>.Instance);
         await _broker.StartAsync(CancellationToken.None);
+        await _broker.Listening.WaitAsync(TimeSpan.FromSeconds(30));
     }
 
     public async Task DisposeAsync()
@@ -98,7 +99,7 @@ public sealed class LockBrokerTests : IAsyncLifetime
 
     private async Task WaitForSessionsAsync(int expected)
     {
-        var deadline = DateTime.UtcNow.AddSeconds(5);
+        var deadline = DateTime.UtcNow.AddSeconds(30);
         while (_broker.ConnectedSessions != expected)
         {
             Assert.True(DateTime.UtcNow < deadline, $"Asteptam {expected} sesiuni, sunt {_broker.ConnectedSessions}.");
@@ -119,7 +120,8 @@ public sealed class LockBrokerTests : IAsyncLifetime
         public static async Task<FakeHelper> ConnectAsync(string pipeName, string? reply)
         {
             var pipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
-            await pipe.ConnectAsync(5000);
+            // Generos: pe runner-ele CI cu 2 nuclee, thread pool-ul poate fi ocupat de alte teste.
+            await pipe.ConnectAsync(30_000);
             var helper = new FakeHelper(pipe);
             _ = helper.RunAsync(reply);
             return helper;

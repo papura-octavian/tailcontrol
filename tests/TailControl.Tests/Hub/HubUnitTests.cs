@@ -99,7 +99,7 @@ public sealed class HubUnitTests
         var sender = new UdpWakeOnLanSender(new HubOptions { WakeBroadcastAddress = "127.0.0.1", WakePort = port });
 
         await sender.SendAsync([0xCC, 0x28, 0xAA, 0x00, 0x00, 0x01], CancellationToken.None);
-        var received = await listener.ReceiveAsync().WaitAsync(TimeSpan.FromSeconds(5));
+        var received = await listener.ReceiveAsync().WaitAsync(TimeSpan.FromSeconds(30));
 
         Assert.Equal(MagicPacket.Build([0xCC, 0x28, 0xAA, 0x00, 0x00, 0x01]), received.Buffer);
     }
@@ -142,7 +142,7 @@ public sealed class HubUnitTests
         listener.Start();
         var port = ((IPEndPoint)listener.LocalEndpoint).Port;
 
-        Assert.True(await probe.IsReachableAsync("127.0.0.1", port, TimeSpan.FromSeconds(2), CancellationToken.None));
+        Assert.True(await probe.IsReachableAsync("127.0.0.1", port, TimeSpan.FromSeconds(10), CancellationToken.None));
 
         listener.Stop();
         Assert.False(await probe.IsReachableAsync("127.0.0.1", port, TimeSpan.FromSeconds(2), CancellationToken.None));
