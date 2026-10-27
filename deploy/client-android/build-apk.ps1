@@ -8,7 +8,7 @@
 #   ANDROID_KEY_PASSWORD      parola cheii
 # Vezi docs/release.md pentru generarea keystore-ului.
 #
-# Utilizare:  pwsh -File deploy/client-android/build-apk.ps1 -Version 0.1.0 -VersionCode 3
+# Utilizare:  powershell -ExecutionPolicy Bypass -File deploy/client-android/build-apk.ps1 -Version 0.1.0 -VersionCode 3
 param(
     [string] $Version = '0.0.0',
     [int] $VersionCode = 1

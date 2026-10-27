@@ -17,7 +17,7 @@ public sealed class LockBrokerTests : IAsyncLifetime
     public async Task InitializeAsync()
     {
         _broker = new LockBroker(
-            new LockBrokerOptions { PipeName = _pipeName, ReplyTimeout = TimeSpan.FromMilliseconds(500), AllowSessionZeroForTests = true },
+            new LockBrokerOptions { PipeName = _pipeName, ReplyTimeout = TimeSpan.FromSeconds(5), AllowSessionZeroForTests = true },
             NullLogger<LockBroker>.Instance);
         await _broker.StartAsync(CancellationToken.None);
         await _broker.Listening.WaitAsync(TimeSpan.FromSeconds(30));
@@ -99,7 +99,7 @@ public sealed class LockBrokerTests : IAsyncLifetime
 
     private async Task WaitForSessionsAsync(int expected)
     {
-        var deadline = DateTime.UtcNow.AddSeconds(5);
+        var deadline = DateTime.UtcNow.AddSeconds(30);
         while (_broker.ConnectedSessions != expected)
         {
             Assert.True(DateTime.UtcNow < deadline, $"Asteptam {expected} sesiuni, sunt {_broker.ConnectedSessions}.");

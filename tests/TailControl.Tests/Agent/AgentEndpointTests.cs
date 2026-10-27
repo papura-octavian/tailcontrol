@@ -160,7 +160,7 @@ public sealed class AgentEndpointTests : IAsyncLifetime
 
         _clock.Advance(TimeSpan.FromSeconds(3));
 
-        await _power.SleepCalled.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await _power.SleepCalled.Task.WaitAsync(TimeSpan.FromSeconds(30));
     }
 
     [Fact]

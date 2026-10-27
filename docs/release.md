@@ -47,51 +47,48 @@ Pe Windows: `Get-FileHash <fisier> -Algorithm SHA256`.
 
 Keystore-ul semneaza toate versiunile viitoare ale aplicatiei Android. Daca il pierzi, actualizarile nu se mai pot instala peste versiunea existenta. **Pastreaza o copie de rezerva offline**, nu in repo.
 
-1. Genereaza-l cu `keytool`, care vine cu JDK-ul folosit de Android SDK. Cu Visual Studio e de obicei in `C:\Program Files\Microsoft\jdk-*\bin`:
-   ```bash
-   keytool -genkeypair -v -keystore tailcontrol-release.keystore -alias tailcontrol -keyalg RSA -keysize 4096 -validity 10000
-   ```
-   Alege o parola puternica si noteaz-o in managerul de parole. Keystore-ul e PKCS12, deci cheia are **aceeasi parola** ca keystore-ul. `ANDROID_KEYSTORE_PASSWORD` si `ANDROID_KEY_PASSWORD` primesc aceeasi valoare.
+Recomandat: scriptul `deploy/client-android/new-signing-key.ps1`. Ruleaza-l din radacina repo-ului, intr-un PowerShell autentificat cu `gh auth login`:
 
-   Daca `gh` raspunde „please run gh auth login”, autentifica-te intai in acel terminal cu `gh auth login`.
-2. Pune-l in GitHub Secrets. In PowerShell, codeaza keystore-ul in base64 si trimite-l ca secret:
-   ```bash
-   [Convert]::ToBase64String([IO.File]::ReadAllBytes("tailcontrol-release.keystore")) | gh secret set ANDROID_KEYSTORE_BASE64
-   ```
-   ```bash
-   gh secret set ANDROID_KEY_ALIAS --body tailcontrol
-   ```
-   Pentru cele doua parole, comanda le cere interactiv si nu le lasa in istoricul shell-ului:
-   ```bash
-   gh secret set ANDROID_KEYSTORE_PASSWORD
-   ```
-   ```bash
-   gh secret set ANDROID_KEY_PASSWORD
-   ```
-3. Sterge copia de lucru a keystore-ului din folderul curent, dupa ce ai facut backup-ul.
+```bash
+powershell -ExecutionPolicy Bypass -File deploy/client-android/new-signing-key.ps1
+```
 
-Fara aceste secrete, jobul `client-android` se opreste cu un mesaj clar. Restul artefactelor se construiesc in continuare.
+Scriptul:
+- genereaza o parola aleatoare de 32 de caractere si creeaza keystore-ul in `$HOME\tailcontrol-keys`;
+- verifica local ca se deschide cu parola si ca are aliasul;
+- incarca cele 4 secrete `ANDROID_*`;
+- afiseaza parola o singura data.
+
+Parola nu e tastata si nu trece prin copy-paste, care sunt cauzele obisnuite pentru `keystore password was incorrect` in CI. Keystore-ul e PKCS12, deci cheia are aceeasi parola ca keystore-ul.
+
+Dupa rulare:
+1. Salveaza in managerul de parole parola afisata si fisierul `tailcontrol-release.keystore` (ca atasament). Inchide apoi terminalul.
+2. Sterge folderul `$HOME\tailcontrol-keys` dupa ce ai backup-ul.
+
+Scriptul refuza sa suprascrie un keystore existent. Pentru o cheie noua, muta sau sterge intai fisierul vechi. Asta se poate face doar inainte de primul APK publicat: dupa aceea, o cheie noua inseamna dezinstalarea aplicatiei de pe telefoane.
+
+In CI, inainte de semnare, `build-apk.ps1` verifica keystore-ul cu `keytool`. Daca parola sau aliasul nu se potrivesc, log-ul spune exact asta (fara sa afiseze parola).
 
 ## Build local (fara CI)
 
-Din radacina repo-ului, cu PowerShell 7 (`pwsh`):
+Din radacina repo-ului, in PowerShell (Windows PowerShell 5.1 sau PowerShell 7):
 
 ```bash
-pwsh -File deploy/hub/build-package.ps1 -Version 0.1.0
+powershell -ExecutionPolicy Bypass -File deploy/hub/build-package.ps1 -Version 0.1.0
 ```
 
 ```bash
-pwsh -File deploy/agent/build-installer.ps1 -Version 0.1.0
+powershell -ExecutionPolicy Bypass -File deploy/agent/build-installer.ps1 -Version 0.1.0
 ```
 
 ```bash
-pwsh -File deploy/client-windows/build-installer.ps1 -Version 0.1.0
+powershell -ExecutionPolicy Bypass -File deploy/client-windows/build-installer.ps1 -Version 0.1.0
 ```
 
 Installerele cer [Inno Setup 6](https://jrsoftware.org/isinfo.php). APK-ul cere variabilele de mediu de mai sus (sau `ANDROID_KEYSTORE_PATH` catre fisierul local):
 
 ```bash
-pwsh -File deploy/client-android/build-apk.ps1 -Version 0.1.0 -VersionCode 1
+powershell -ExecutionPolicy Bypass -File deploy/client-android/build-apk.ps1 -Version 0.1.0 -VersionCode 1
 ```
 
 ## De ce Inno Setup si nu MSIX pentru clientul Windows

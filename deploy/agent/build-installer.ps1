@@ -1,6 +1,6 @@
 # Construieste installerul agentului: publicare self-contained (win-x64) a agentului si a helper-ului
 # de blocare, apoi Inno Setup. Rezultat: artifacts/TailControl-Agent-Setup-<versiune>.exe
-# Utilizare (din radacina repo-ului):  pwsh -File deploy/agent/build-installer.ps1 -Version 0.1.0
+# Utilizare (din radacina repo-ului):  powershell -ExecutionPolicy Bypass -File deploy/agent/build-installer.ps1 -Version 0.1.0
 param(
     [string] $Version = '0.0.0',
     [string] $Iscc = ''

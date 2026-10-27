@@ -1,6 +1,6 @@
 # Construieste installerul aplicatiei Windows: MAUI unpackaged + Windows App SDK self-contained,
 # apoi Inno Setup. Rezultat: artifacts/TailControl-Client-Setup-<versiune>.exe
-# Utilizare (din radacina repo-ului):  pwsh -File deploy/client-windows/build-installer.ps1 -Version 0.1.0
+# Utilizare (din radacina repo-ului):  powershell -ExecutionPolicy Bypass -File deploy/client-windows/build-installer.ps1 -Version 0.1.0
 param(
     [string] $Version = '0.0.0',
     [string] $Iscc = ''
