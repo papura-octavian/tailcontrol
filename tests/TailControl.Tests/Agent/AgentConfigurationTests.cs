@@ -36,6 +36,16 @@ public sealed class AgentConfigurationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(System.Net.NetworkInformation.OperationalStatus.Up, true)]
+    [InlineData(System.Net.NetworkInformation.OperationalStatus.Unknown, true)] // tailscale0 pe Linux
+    [InlineData(System.Net.NetworkInformation.OperationalStatus.Down, false)]
+    [InlineData(System.Net.NetworkInformation.OperationalStatus.NotPresent, false)]
+    public void IsUsable_AcceptsUnknownStateOfTunInterfaces(System.Net.NetworkInformation.OperationalStatus status, bool expected)
+    {
+        Assert.Equal(expected, TailscaleNetwork.IsUsable(status));
+    }
+
+    [Theory]
     [InlineData("0.0.0.0")]
     [InlineData("::")]
     [InlineData("192.168.0.10")]

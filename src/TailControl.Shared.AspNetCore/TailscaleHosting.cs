@@ -41,7 +41,10 @@ public static class TailscaleHosting
         IReadOnlyList<IPAddress> addresses = settings.ListenAddresses.Count > 0
             ? [.. settings.ListenAddresses.Select(IPAddress.Parse)]
             : await TailscaleNetwork.WaitForLocalAddressesAsync(
-                TimeSpan.FromSeconds(settings.TailscaleWaitSeconds), TimeSpan.FromSeconds(5), CancellationToken.None).ConfigureAwait(false);
+                TimeSpan.FromSeconds(settings.TailscaleWaitSeconds),
+                TimeSpan.FromSeconds(5),
+                CancellationToken.None,
+                Console.Error.WriteLine).ConfigureAwait(false);
 
         if (addresses.Count == 0)
         {
