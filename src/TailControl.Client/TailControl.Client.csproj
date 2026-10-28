@@ -28,7 +28,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#3557E8" />
+		<!-- Pe Android iconita e cea de pe skipit.space (generata cu SkipIt-website/scripts/make-app-icons.mjs); Windows ramane cu cea originala. -->
+		<MauiIcon Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'" Include="Resources\AppIcon\Android\appicon.svg" ForegroundFile="Resources\AppIcon\Android\appiconfg.svg" ForegroundScale="0.65" />
+		<MauiIcon Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) != 'android'" Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#3557E8" />
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#3557E8" BaseSize="128,128" />
 		<MauiImage Include="Resources\Images\*" />
 		<MauiFont Include="Resources\Fonts\*" />
